@@ -1,0 +1,56 @@
+import os
+import telebot
+import schedule
+import time
+import threading
+
+# Token do Bot obtido das Variáveis de Ambiente do Render
+TOKEN = os.getenv('TELEGRAM_TOKEN')
+bot = telebot.TeleBot(TOKEN)
+
+# ID ou Username do seu canal público no Telegram (substitua pelo seu canal)
+CANAL_ID =achadinhosdajenishopee!
+
+# Função para enviar ofertas automáticas para o canal
+def postar_oferta_automatica():
+    mensagem = (
+        "🔥 **OFERTA DO DIA NA SHOPEE!** 🔥\n\n"
+        "Confira as melhores promoções de hoje no nosso link de afiliado!\n"
+        "🛒 https://shopee.com.br"
+    )
+    try:
+        bot.send_message(chat_id=CANAL_ID, text=mensagem, parse_mode="Markdown")
+        print("Oferta enviada para o canal com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar oferta: {e}")
+
+# Agenda a postagem a cada 2 horas
+schedule.every(2).hours.do(postar_oferta_automatica)
+
+def rodar_agendador():
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+# Inicia o agendador numa thread separada
+threading.Thread(target=rodar_agendador, daemon=True).start()
+
+# Comandos do Bot
+@bot.message_handler(commands=['start', 'help'])
+def enviar_boas_vindas(mensagem):
+    bot.reply_to(mensagem, "Olá! O teu bot de ofertas está ativo.")
+
+@bot.message_handler(func=lambda m: True)
+def converter_link(mensagem):
+    texto = mensagem.text
+    if "shopee" in texto.lower():
+        # Adiciona a marcação do seu ID de afiliado no link enviado
+        link_afiliado = f"{texto}?aff_id=18389711254"
+        resposta = f"🛒 **Oferta Shopee Gerada:**\n{link_afiliado}"
+        bot.reply_to(mensagem, resposta, parse_mode="Markdown")
+    else:
+        bot.reply_to(mensagem, "Envia um link válido da Shopee!")
+
+print("Bot iniciado com sucesso...")
+bot.infinity_polling()
+
